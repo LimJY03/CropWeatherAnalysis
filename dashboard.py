@@ -1,13 +1,18 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 import plotly.express as px
 from constants import WEATHER_FEATURES
+import plotly.graph_objects as go
+ 
+
 
 st.title(':material/monitoring: Data Visualization')
 st.divider()
 
 # Tabs
-crop_tab, weather_tab = st.tabs(['Crop Yield', 'Weather'])
+crop_weather_tab, crop_tab, weather_tab = st.tabs(['Crop Yield & Weather', 'Crop Yield', 'Weather'])
 
 # Crop
 with crop_tab:
@@ -19,7 +24,6 @@ with crop_tab:
     crop_feature_selection = list(crop_data.columns.drop('Year'))
 
     crop_col1, crop_col2 = st.columns([1, 2])
-    selected_crop_feature = crop_feature_selection[0]
 
     with crop_col1:
         st.write('Select Column to Visualize:')
@@ -40,7 +44,6 @@ with weather_tab:
     weather_data = pd.read_csv('data/nasa_data_year.csv')
 
     weather_col1, weather_col2 = st.columns([1, 2])
-    selected_weather_feature = list(WEATHER_FEATURES.keys())[0]
 
     with weather_col1:
         st.write('Select Column to Visualize:')
@@ -54,3 +57,37 @@ with weather_tab:
 
     with weather_col2:
         st.plotly_chart(px.line(weather_data, x='YEAR', y=WEATHER_FEATURES[selected_weather_feature], title=f'{selected_weather_feature} Across Year'))
+
+# Crop yield and weather data
+with crop_weather_tab:
+
+    X = weather_data.drop(columns='YEAR')
+    y = crop_data['Value']
+
+    combine_left, combine_right = st.columns([1, 2])
+
+    with combine_left:
+
+        crop_feature = st.selectbox('Crop Feature', crop_feature_selection)
+        weather_feature = st.selectbox('Weather Feature', WEATHER_FEATURES.keys())
+        
+        fig, ax = plt.subplots()
+        sns.heatmap(X.corrwith(y).values.reshape(-1, 1), annot=True, yticklabels=X.columns, ax=ax)
+        ax.set_title('Correlation between Weather Features and Crop Yield')
+        st.pyplot(fig)
+
+    crop_weather_data = crop_data.merge(weather_data, left_on='Year', right_on='YEAR').drop(columns='YEAR')    
+    melt = crop_weather_data.melt(id_vars='Year', value_vars=[crop_feature, WEATHER_FEATURES[weather_feature]])
+
+    with combine_right:
+
+        fig = go.Figure() 
+        fig.add_trace(go.Scatter(x=crop_weather_data['Year'], y=crop_weather_data[crop_feature], name=crop_feature, yaxis='y'))        
+        fig.add_trace(go.Scatter(x=crop_weather_data['Year'], y=crop_weather_data[WEATHER_FEATURES[weather_feature]], name=weather_feature, yaxis='y2'))
+        fig.update_layout(   
+            yaxis=dict(title=crop_feature),
+            yaxis2=dict(title=weather_feature, overlaying='y', side='right'),
+            title_text=f'{crop_feature} and {weather_feature} Across Year',
+        )
+
+        st.plotly_chart(fig)

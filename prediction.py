@@ -58,9 +58,6 @@ with single_point_tab:
     ab_pred = ab_reg.predict(X_scaled)[0]
     xgb_pred = xgb_reg.predict(X_scaled)[0]
 
-    st.write(X_scaled)
-    st.write(rf_reg.feature_importances_)
-
     # Display the results as metrics
     with out_col1:
         st.metric(label='AdaBoost Prediction Yield', value=f'{ab_pred:.2f}', border=True)
