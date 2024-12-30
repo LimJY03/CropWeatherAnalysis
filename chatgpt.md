@@ -1,3 +1,16 @@
+TODOs:
+
+Data
+
+[] Try to get the data with min temp from nasa website again
+
+Prediction Page
+
+[] Single Point: compare result and average (?% above or below average + graph)
+[] Multi Point: forecast model and predict
+
+---
+
 To effectively handle the challenge you're facing, you're correct in noting that simply aggregating the weather data to a single value per year (20 rows) is likely too sparse and might lead to overfitting or poor generalization due to the limited data size. Instead, you'll want to consider leveraging the seasonal and sequential patterns in the weather data while preserving the link between these features and the crop yield. Here’s how you can approach this:
 
 ### 1. **Reshaping the Data to a Monthly Level**
