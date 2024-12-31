@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import joblib
 from assets.constants import WEATHER_FEATURES
 
@@ -8,17 +9,26 @@ st.title(':material/psychology: Prediction')
 st.divider()
 
 # Load models
-rf_reg = joblib.load('models/rf_tune.pkl')
-ab_reg = joblib.load('models/ab_tune.pkl')
-xgb_reg = joblib.load('models/xgb_tune.pkl')
+models_dict = {
+    'AdaBoost Regressor': {
+        'model': joblib.load('models/ab_tune.pkl'),
+        'pred': []
+    },
+    'Random Forest Regressor': {
+        'model': joblib.load('models/rf_tune.pkl'),
+        'pred': []
+    },
+    'XGBoost Regressor': {
+        'model': joblib.load('models/xgb_tune.pkl'),
+        'pred': []
+    },
+}
 
 # Load scaler
 scaler = joblib.load('models/scaler.pkl')
 
 # Layout
 single_point_tab, multi_point_tab = st.tabs(['Single Datapoint', 'Multi Datapoint'])
-
-make_predict = False
 
 with single_point_tab:
 
@@ -58,9 +68,11 @@ with single_point_tab:
     X_scaled = pd.DataFrame(X_scaled_np, columns=X.keys())
 
     # Predicted results from each model
-    rf_pred = rf_reg.predict(X_scaled)[0]
-    ab_pred = ab_reg.predict(X_scaled)[0]
-    xgb_pred = xgb_reg.predict(X_scaled)[0]
+    # prediction_dict['AdaBoost Regressor'] = ab_reg.predict(X_scaled)[0]
+    # prediction_dict['Random Forest Regressor'] = rf_reg.predict(X_scaled)[0]
+    # prediction_dict['XGBoost Regressor'] = xgb_reg.predict(X_scaled)[0]
+    for model_name in models_dict.keys():
+        models_dict[model_name]['pred'] = models_dict[model_name]['model'].predict(X_scaled)[0]
 
     @st.dialog(title='Model Summary', width='large')
     def show_model_summary(model):
@@ -72,26 +84,52 @@ with single_point_tab:
 
     # Display the results as metrics
     with out_col1:
-        st.metric(label='AdaBoost Prediction Yield', value=f'{ab_pred:.2f}', border=True)
-        if st.button('View AdaBoost Regressor Model Summary', icon=':material/bar_chart:', use_container_width=True): 
-            show_model_summary(ab_reg)
 
-        st.metric(label='Random Forest Prediction Yield', value=f'{rf_pred:.2f}', border=True)
-        if st.button('View Random Forest Regressor Model Summary', icon=':material/bar_chart:', use_container_width=True): 
-            show_model_summary(rf_reg)
+        for model_name in models_dict.keys():
+            st.metric(label=f'{model_name} Prediction Yield', value=f'{models_dict[model_name]['pred']:.2f}', border=True)
+            if st.button(f'View {model_name} Model Summary', icon=':material/bar_chart:', use_container_width=True): 
+                show_model_summary(models_dict[model_name]['model'])
 
-        st.metric(label='XGBoost Prediction Yield', value=f'{xgb_pred:.2f}', border=True)
-        if st.button('View XGBoost Regressor Model Summary', icon=':material/bar_chart:', use_container_width=True): 
-            show_model_summary(xgb_reg)
+        # st.metric(label='AdaBoost Prediction Yield', value=f'{ab_pred:.2f}', border=True)
+        # if st.button('View AdaBoost Regressor Model Summary', icon=':material/bar_chart:', use_container_width=True): 
+        #     show_model_summary(ab_reg)
+
+        # st.metric(label='Random Forest Prediction Yield', value=f'{rf_pred:.2f}', border=True)
+        # if st.button('View Random Forest Regressor Model Summary', icon=':material/bar_chart:', use_container_width=True): 
+        #     show_model_summary(rf_reg)
+
+        # st.metric(label='XGBoost Prediction Yield', value=f'{xgb_pred:.2f}', border=True)
+        # if st.button('View XGBoost Regressor Model Summary', icon=':material/bar_chart:', use_container_width=True): 
+        #     show_model_summary(xgb_reg)
 
     with out_col2:
-        st.write('')
-        st.write('')
-        st.markdown('**Model Predictions**')
-        st.bar_chart(pd.DataFrame({ 'Model': ['Random Forest Regressor', 'AdaBoost Regressor', 'XGBoost Regressor'],'Yield (kg/ht)': [rf_pred, ab_pred, xgb_pred] }), 
-                     x='Model', 
-                     y='Yield (kg/ht)', 
-                     color='Model',
-                     height=440,
-                     horizontal=True,
-                     use_container_width=True)
+
+        crop_data = pd.read_csv('data/crop_data_nasa.csv')
+        crop_data = crop_data[crop_data['Item'] == 'Rice'].reset_index(drop=True).drop(columns='Item')
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=crop_data['Year'], y=crop_data['Value'], name='Historical Yield'))
+
+        for model_name in models_dict.keys():
+            fig.add_trace(go.Scatter(
+                x=crop_data['Year'], 
+                y=[models_dict[model_name]['pred']] * len(crop_data['Year']),
+                mode='lines', 
+                name=f'{model_name} Predicted Yield', 
+                line=dict(dash='dash')
+            ))
+
+        # Add title and labels
+        fig.update_layout(
+            title='Rice: Predicted Yield and Historical Yield',
+            xaxis_title='Year',
+            yaxis_title='Yield (kg/ha)',
+            legend=dict(
+                orientation='h',
+                x=0.5, xanchor='center',
+                y=-0.35, yanchor='bottom'
+            ),
+            height=500
+        )
+
+        st.plotly_chart(fig)
