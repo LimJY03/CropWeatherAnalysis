@@ -2,6 +2,8 @@
 
 **Agriculture is crucial to Malaysia's economy** and livelihoods, supporting many people. As the population grows, modernizing agriculture is vital to meet food demands. 
 
+![cover image](./images/cover-image.jpg)
+
 A large portion of land is dedicated to farming, and farmers are now seeking ways to boost productivity and maximize returns. 
 
 Studies shown that precipitation and changes in temperature indeed have impacts on crop yield, indicating that **adapting farming practices** to address these climate variations is essential for sustaining agricultural output.
@@ -14,7 +16,9 @@ Farmers are seeking more detailed information about new crops and their profitab
 
 Moreover, extreme weather events can disrupt crop yields, emphasizing the need for **advanced weather forecasting** in agricultural planning to enhance resilience and support food security in Malaysia.
 
-## App Architecture
+## App Demo
+
+The Streamlit app can be accessed via [this link]().
 
 ## Installation
 
@@ -38,4 +42,12 @@ Install neccessary libraries
 
 ```sh
 pip install requirements.txt
+```
+
+### Run the app
+
+To run the app, execute the following code in your terminal. Ensure that your terminal directory is at the project root `CropWeatherAnalysis`.
+
+```sh
+streamlit run app.py
 ```
