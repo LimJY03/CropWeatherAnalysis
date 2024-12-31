@@ -31,12 +31,13 @@ The Streamlit app can be accessed via [this link]().
 
 Before running the **CropWeatherAnalysis** system, make sure you have the following prerequisites:
 
+* Git: Ensure that Git is installed on your system for version control and cloning the repository. You can download Git from the [official Git website](https://git-scm.com/).
 * Python 3.6 or higher: Ensure that Python is installed on your system. You can download Python from the [official Python website](https://www.python.org/downloads/).
 * Pip: Make sure you have pip installed to manage Python packages.
 
 ### Setup
 
-lorem ipsum setup description
+To set up the **CropWeatherAnalysis** system, follow the steps below:
 
 ```sh
 git clone https://github.com/LimJY03/CropWeatherAnalysis.git
