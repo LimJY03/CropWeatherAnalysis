@@ -3,10 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
-from constants import WEATHER_FEATURES
+from constants import WEATHER_FEATURES, WEATHER_RANGES
 import plotly.graph_objects as go
- 
-
 
 st.title(':material/monitoring: Data Visualization')
 st.divider()
@@ -18,30 +16,34 @@ crop_weather_tab, crop_tab, weather_tab = st.tabs(['Crop Yield & Weather', 'Crop
 with crop_tab:
 
     crop_data = pd.read_csv('data/crop_data_nasa.csv')
-    crop_data = crop_data[crop_data['Item'] == 'Rice'].reset_index(drop=True).drop(columns='Item')
-    crop_data['Pct_chg'] = (crop_data['Value'].pct_change() * 100) #.fillna(0)
+    crop_data['Percent Change'] = (crop_data['Value'].pct_change() * 100) #.fillna(0)
 
-    crop_feature_selection = list(crop_data.columns.drop('Year'))
+    crop_feature_selection = list(crop_data.columns.drop(['Year', 'Item']))
 
     crop_col1, crop_col2 = st.columns([1, 2])
 
     with crop_col1:
-        st.write('Select Column to Visualize:')
-        selected_crop_feature = st.selectbox(options=crop_feature_selection, label='select-crop', label_visibility='collapsed')
+        selected_crop = st.selectbox('Select Crop Type', crop_data['Item'].unique())
+        crop_data_viz = crop_data[crop_data['Item'] == selected_crop].reset_index(drop=True).drop(columns='Item')
+        selected_crop_feature = st.selectbox('Select Column to Visualize:', crop_feature_selection, key='crop-col')
 
-        st.dataframe(crop_data[['Year'] + [selected_crop_feature]], 
+        st.dataframe(crop_data_viz[['Year'] + [selected_crop_feature]], 
                     column_config={'Year': st.column_config.NumberColumn(format='%f')},
                     hide_index=True, use_container_width=True)
         
         st.caption('Data sourced from [Food and Agriculture Organization of the United Nations](https://www.fao.org/faostat/en/#data/QCL).')
 
     with crop_col2:
-        st.plotly_chart(px.line(crop_data, x='Year', y=selected_crop_feature, title=f'{selected_crop_feature} Across Year'))
+        st.plotly_chart(px.line(crop_data_viz, x='Year', y=selected_crop_feature, title=f'{selected_crop_feature} Across Year'))
 
 # Weather data
 with weather_tab: 
 
     weather_data = pd.read_csv('data/nasa_data_year.csv')
+    rows_to_convert = [WEATHER_FEATURES[col] for col, range in WEATHER_RANGES.items() if range == [0, 1]]
+
+    for col in rows_to_convert:
+        weather_data[col] *= 100
 
     weather_col1, weather_col2 = st.columns([1, 2])
 
@@ -62,22 +64,23 @@ with weather_tab:
 with crop_weather_tab:
 
     X = weather_data.drop(columns='YEAR')
-    y = crop_data['Value']
 
     combine_left, combine_right = st.columns([1, 2])
 
     with combine_left:
 
+        selected_crop = st.selectbox('Select Crop Type', crop_data['Item'].unique(), key='multi-viz')
+        crop_data_viz = crop_data[crop_data['Item'] == selected_crop].reset_index(drop=True).drop(columns='Item')
+        y = crop_data_viz['Value']
         crop_feature = st.selectbox('Crop Feature', crop_feature_selection)
         weather_feature = st.selectbox('Weather Feature', WEATHER_FEATURES.keys())
         
         fig, ax = plt.subplots()
-        sns.heatmap(X.corrwith(y).values.reshape(-1, 1), annot=True, yticklabels=X.columns, ax=ax)
-        ax.set_title('Correlation between Weather Features and Crop Yield')
+        sns.heatmap(X.corrwith(y).values.reshape(-1, 1), annot=True, yticklabels=WEATHER_FEATURES.keys(), ax=ax)
+        ax.set_title(f'Correlation between Weather Features and {selected_crop} Yield')
         st.pyplot(fig)
 
-    crop_weather_data = crop_data.merge(weather_data, left_on='Year', right_on='YEAR').drop(columns='YEAR')    
-    melt = crop_weather_data.melt(id_vars='Year', value_vars=[crop_feature, WEATHER_FEATURES[weather_feature]])
+    crop_weather_data = crop_data_viz.merge(weather_data, left_on='Year', right_on='YEAR').drop(columns='YEAR')    
 
     with combine_right:
 
