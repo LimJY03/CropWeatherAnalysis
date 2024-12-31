@@ -15,8 +15,8 @@ crop_weather_tab, crop_tab, weather_tab = st.tabs(['Crop Yield & Weather', 'Crop
 # Crop
 with crop_tab:
 
-    crop_data = pd.read_csv('data/crop_data_nasa.csv')
-    crop_data['Percent Change'] = (crop_data['Value'].pct_change() * 100) #.fillna(0)
+    crop_data = pd.read_csv('data/crop_data_nasa.csv').rename(columns={'Value': 'Yield (kg/ha)'})
+    crop_data['Percent Change (%)'] = (crop_data['Yield (kg/ha)'].pct_change() * 100)
 
     crop_feature_selection = list(crop_data.columns.drop(['Year', 'Item']))
 
@@ -34,7 +34,7 @@ with crop_tab:
         st.caption('Data sourced from [Food and Agriculture Organization of the United Nations](https://www.fao.org/faostat/en/#data/QCL).')
 
     with crop_col2:
-        st.plotly_chart(px.line(crop_data_viz, x='Year', y=selected_crop_feature, title=f'{selected_crop_feature} Across Year'))
+        st.plotly_chart(px.line(crop_data_viz, x='Year', y=selected_crop_feature, title=f'{selected_crop_feature} Across Year', height=500))
 
 # Weather data
 with weather_tab: 
@@ -58,7 +58,7 @@ with weather_tab:
         st.caption('Data sourced from [NASA Prediction Of Worldwide Energy Resources](https://power.larc.nasa.gov/data-access-viewer/).')
 
     with weather_col2:
-        st.plotly_chart(px.line(weather_data, x='YEAR', y=WEATHER_FEATURES[selected_weather_feature], title=f'{selected_weather_feature} Across Year'))
+        st.plotly_chart(px.line(weather_data, x='YEAR', y=WEATHER_FEATURES[selected_weather_feature], title=f'{selected_weather_feature} Across Year', height=500))
 
 # Crop yield and weather data
 with crop_weather_tab:
@@ -71,7 +71,7 @@ with crop_weather_tab:
 
         selected_crop = st.selectbox('Select Crop Type', crop_data['Item'].unique(), key='multi-viz')
         crop_data_viz = crop_data[crop_data['Item'] == selected_crop].reset_index(drop=True).drop(columns='Item')
-        y = crop_data_viz['Value']
+        y = crop_data_viz['Yield (kg/ha)']
         crop_feature = st.selectbox('Crop Feature', crop_feature_selection)
         weather_feature = st.selectbox('Weather Feature', WEATHER_FEATURES.keys())
         
@@ -90,7 +90,13 @@ with crop_weather_tab:
         fig.update_layout(   
             yaxis=dict(title=crop_feature),
             yaxis2=dict(title=weather_feature, overlaying='y', side='right'),
-            title_text=f'{crop_feature} and {weather_feature} Across Year',
+            title_text=f'{crop_feature} vs {weather_feature} Across Year',
+            legend=dict(
+                orientation='h',
+                x=0.5, xanchor='center',
+                y=-0.35, yanchor='bottom'
+            ),
+            height=500
         )
 
         st.plotly_chart(fig)
