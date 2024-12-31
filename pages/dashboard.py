@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
-from constants import WEATHER_FEATURES, WEATHER_RANGES
+from assets.constants import WEATHER_FEATURES, WEATHER_RANGES
 import plotly.graph_objects as go
 
 st.title(':material/monitoring: Data Visualization')
