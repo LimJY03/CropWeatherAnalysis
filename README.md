@@ -2,7 +2,9 @@
 
 **Agriculture is crucial to Malaysia's economy** and livelihoods, supporting many people. As the population grows, modernizing agriculture is vital to meet food demands. 
 
-![cover image](./images/cover-image.jpg)
+<div align="center" width="100%">
+  <img src="./assets/images/cover-image.jpg" width="100%">
+</div>
 
 A large portion of land is dedicated to farming, and farmers are now seeking ways to boost productivity and maximize returns. 
 
