@@ -66,6 +66,8 @@ The **Prediction** page is designed to predict crop yields based on current or h
   - A numeric yield estimate from the top 3 performing models.
   - A graphical comparison of predicted yield vs historical averages.
 
+The prediction page also has a **"Yield Forecast based on Weather"** tab, where the 3 models predicts the yield based on forecasted weather data from 2022 to 2027, providing a long-term outlook for crop yields under varying climate conditions.
+
 ---
 
 ### User Manual Page

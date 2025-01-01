@@ -12,15 +12,18 @@ st.divider()
 models_dict = {
     'AdaBoost Regressor': {
         'model': joblib.load('models/ab_tune_sg.pkl'),
-        'pred': []
+        'pred': [],
+        'series_pred': [],
     },
     'Random Forest Regressor': {
         'model': joblib.load('models/rf_tune_sg.pkl'),
-        'pred': []
+        'pred': [],
+        'series_pred': [],
     },
     'XGBoost Regressor': {
         'model': joblib.load('models/xgb_tune_sg.pkl'),
-        'pred': []
+        'pred': [],
+        'series_pred': [],
     },
 }
 
@@ -153,3 +156,50 @@ with single_point_tab:
         )
 
         st.plotly_chart(fig)
+
+with multi_point_tab:
+
+    arima_pred = pd.read_csv('data/arima_pred.csv')
+    arima_pred['T2M_MAX'] = arima_pred['T2M_MIN'] + arima_pred['T2M_RANGE']
+    arima_pred['rain_days'] = arima_pred['rain_days'].apply(int)
+
+    with st.expander('View Forecasted Weather Data'):
+
+        arima_pred_viz = arima_pred.copy()
+        arima_pred_viz.columns = ['Year'] + list(WEATHER_FEATURES.keys())
+        
+        for col in ['Profile Soil Moisture (%)', 'Root Zone Soil Wetness (%)', 'Surface Soil Wetness (%)']:
+            arima_pred_viz[col] *= 100
+
+        st.dataframe(arima_pred_viz.set_index('Year').T, use_container_width=True)
+
+    arima_X = arima_pred.drop(columns='YEAR')
+    arima_X_scaled = scaler.transform(arima_X)
+
+    # Predicted results from each model
+    for model_name in models_dict.keys():
+        models_dict[model_name]['series_pred'] = models_dict[model_name]['model'].predict(arima_X_scaled)
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=crop_data['Year'], y=crop_data['Value'], name='Historical Yield'))
+
+    for model_name in models_dict.keys():
+        fig.add_trace(go.Scatter(
+            x=arima_pred['YEAR'], 
+            y=models_dict[model_name]['series_pred'],
+            mode='lines', 
+            name=f'{model_name} Forecasted Yield',
+        ))
+
+    # Add title and labels
+    fig.update_layout(
+        title='Rice: Predicted Yield based on Weather Forecast',
+        xaxis_title='Year',
+        yaxis_title='Yield (kg/ha)',
+        height=500
+    )
+
+    st.plotly_chart(fig)
+
+    st.markdown('## Recommendations / Suggestions')
+    st.write('loremipsum idk what to do here')

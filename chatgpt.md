@@ -7,7 +7,7 @@ Data
 Prediction Page
 
 - [X] Single Point: compare result and average (?% above or below average + graph)
-- [ ] Multi Point: forecast model and predict
+- [X] Multi Point: forecast model and predict
 
 ---
 
