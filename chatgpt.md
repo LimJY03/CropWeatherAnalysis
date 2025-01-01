@@ -2,11 +2,11 @@ TODOs:
 
 Data
 
-- [ ] Try to get the data with min temp from nasa website again
+- [X] Try to get the data with min temp from nasa website again
 
 Prediction Page
 
-- [ ] Single Point: compare result and average (?% above or below average + graph)
+- [X] Single Point: compare result and average (?% above or below average + graph)
 - [ ] Multi Point: forecast model and predict
 
 ---
