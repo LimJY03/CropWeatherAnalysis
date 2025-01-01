@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 import joblib
 from assets.constants import WEATHER_FEATURES
@@ -41,10 +40,7 @@ with single_point_tab:
 
         with inp_col_1:
             st.markdown('**Temperature Data**')
-            # X['T2M_MAX'] = st.slider(min_value=20.0, max_value=50.0, step=0.01, label='Maximum Temperature (C)')
-            # X['T2M_MIN'] = st.slider(min_value=10.0, max_value=40.0, step=0.01, label='Minimum Temperature (C)')
             X['T2M_MIN'], X['T2M_MAX'] = st.slider(min_value=10.0, max_value=50.0, step=0.01, value=(10.0, 50.0), label='Temperature (C)')
-            # X['T2M_RANGE'] = st.text_input(value=X['T2M_MAX'] - X['T2M_MIN'], disabled=True, label='Temperature Range (C)')
             X['T2M_RANGE'] = X['T2M_MAX'] - X['T2M_MIN']
         with inp_col_2:
             st.markdown('**Wind Data**')
@@ -68,16 +64,12 @@ with single_point_tab:
     X_scaled = pd.DataFrame(X_scaled_np, columns=X.keys())
 
     # Predicted results from each model
-    # prediction_dict['AdaBoost Regressor'] = ab_reg.predict(X_scaled)[0]
-    # prediction_dict['Random Forest Regressor'] = rf_reg.predict(X_scaled)[0]
-    # prediction_dict['XGBoost Regressor'] = xgb_reg.predict(X_scaled)[0]
     for model_name in models_dict.keys():
         models_dict[model_name]['pred'] = models_dict[model_name]['model'].predict(X_scaled)[0]
 
     @st.dialog(title='Model Summary', width='large')
     def show_model_summary(model):
-        st.bar_chart(
-            # pd.DataFrame(model.feature_importances_, index=list(map(lambda x: WEATHER_FEATURES[x], X.keys()))).reset_index(), 
+        st.bar_chart( 
             pd.DataFrame(model.feature_importances_, index=WEATHER_FEATURES.keys()).reset_index(), 
             x='index', color='index', x_label='Weight', y_label='Feature', 
             height=500, horizontal=True)
@@ -89,18 +81,6 @@ with single_point_tab:
             st.metric(label=f'{model_name} Prediction Yield', value=f'{models_dict[model_name]['pred']:.2f}', border=True)
             if st.button(f'View {model_name} Model Summary', icon=':material/bar_chart:', use_container_width=True): 
                 show_model_summary(models_dict[model_name]['model'])
-
-        # st.metric(label='AdaBoost Prediction Yield', value=f'{ab_pred:.2f}', border=True)
-        # if st.button('View AdaBoost Regressor Model Summary', icon=':material/bar_chart:', use_container_width=True): 
-        #     show_model_summary(ab_reg)
-
-        # st.metric(label='Random Forest Prediction Yield', value=f'{rf_pred:.2f}', border=True)
-        # if st.button('View Random Forest Regressor Model Summary', icon=':material/bar_chart:', use_container_width=True): 
-        #     show_model_summary(rf_reg)
-
-        # st.metric(label='XGBoost Prediction Yield', value=f'{xgb_pred:.2f}', border=True)
-        # if st.button('View XGBoost Regressor Model Summary', icon=':material/bar_chart:', use_container_width=True): 
-        #     show_model_summary(xgb_reg)
 
     with out_col2:
 
