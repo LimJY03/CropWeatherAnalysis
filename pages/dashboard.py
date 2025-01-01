@@ -40,6 +40,9 @@ with crop_tab:
 with weather_tab: 
 
     weather_data = pd.read_csv('data/nasa_data_year.csv')
+    sg_rain_data = pd.read_csv('data/sg_rain_data.csv')
+    weather_data = weather_data.merge(sg_rain_data, left_on='YEAR', right_on='year')
+
     rows_to_convert = [WEATHER_FEATURES[col] for col, range in WEATHER_RANGES.items() if range == [0, 1]]
 
     for col in rows_to_convert:
@@ -63,7 +66,7 @@ with weather_tab:
 # Crop yield and weather data
 with crop_weather_tab:
 
-    X = weather_data.drop(columns='YEAR')
+    X = weather_data.drop(columns=['YEAR', 'year', 'PREC_DAYS'])
 
     combine_left, combine_right = st.columns([1, 2])
 
