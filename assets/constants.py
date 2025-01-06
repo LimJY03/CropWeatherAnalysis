@@ -8,7 +8,6 @@ WEATHER_FEATURES = {
     'Temperature at 2 Meters Minimum (C)': 'T2M_MIN',
     'Temperature at 2 Meters Range (C)': 'T2M_RANGE',
     'Wind Speed at 10 Meters (m/s)': 'WS10M',
-    # 'Rainfall Days': 'PREC_DAYS',
     'Rainfall Days': 'rain_days'
 }
 
@@ -22,6 +21,5 @@ WEATHER_RANGES = {
     'Temperature at 2 Meters Minimum (C)': [10, 40],
     'Temperature at 2 Meters Range (C)': [1, 10],
     'Wind Speed at 10 Meters (m/s)': [0, 10],
-    # 'Rainfall Days': [0, 365],
     'Rainfall Days': 'rain_days'
 }

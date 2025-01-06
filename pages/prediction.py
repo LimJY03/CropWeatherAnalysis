@@ -4,8 +4,6 @@ import random
 import plotly.graph_objects as go
 import joblib
 from assets.constants import WEATHER_FEATURES
-# import matplotlib.pyplot as plt
-# import seaborn as sns
 
 st.title(':material/psychology: Prediction')
 st.divider()
@@ -71,37 +69,12 @@ with single_point_tab:
         with inp_col_3:
             st.markdown('**Rain Data**')
             X['PRECTOTCORR'] = st.slider(min_value=0.0, max_value=50.0, step=0.01, value=X['PRECTOTCORR'], label='Average Rainfall (mm/day)')
-            # X['PREC_DAYS'] = st.slider(min_value=0, max_value=365, step=1, label='Rainfall Days')
             X['rain_days'] = st.slider(min_value=0, max_value=365, step=1, value=X['rain_days'], label='Rainfall Days')
         with inp_col_4:
             st.markdown('**Soil Data**')
             X['GWETPROF'] = st.slider(min_value=0.0, max_value=100.0, step=0.01, value=X['GWETPROF'], label='Profile Soil Wetness (%)') / 100
             X['GWETROOT'] = st.slider(min_value=0.0, max_value=100.0, step=0.01, value=X['GWETROOT'], label='Root Zone Soil Wetness (%)') / 100
             X['GWETTOP'] = st.slider(min_value=0.0, max_value=100.0, step=0.01, value=X['GWETTOP'], label='Surface Soil Wetness (%)') / 100
-
-    # with st.form(key='pred_input'):
-
-    #     inp_col_1, inp_col_2, inp_col_3, inp_col_4 = st.columns(4)
-
-    #     with inp_col_1:
-    #         st.markdown('**Temperature Data**')
-    #         X['T2M_MIN'], X['T2M_MAX'] = st.slider(min_value=10.0, max_value=50.0, step=0.01, value=(10.0, 50.0), label='Temperature (C)')
-    #         X['T2M_RANGE'] = X['T2M_MAX'] - X['T2M_MIN']
-    #     with inp_col_2:
-    #         st.markdown('**Wind Data**')
-    #         X['CLOUD_AMT'] = st.slider(min_value=25.0, max_value=100.0, step=0.01, label='Cloud Amount (%)')
-    #         X['WS10M'] = st.slider(min_value=0.0, max_value=10.0, step=0.01, label='Wind Speed at 10 Meters (m/s)')
-    #     with inp_col_3:
-    #         st.markdown('**Rain Data**')
-    #         X['PRECTOTCORR'] = st.slider(min_value=0.0, max_value=50.0, step=0.01, label='Average Rainfall (mm/day)')
-    #         X['PREC_DAYS'] = st.slider(min_value=0, max_value=365, step=1, label='Rainfall Days')
-    #     with inp_col_4:
-    #         st.markdown('**Soil Data**')
-    #         X['GWETPROF'] = st.slider(min_value=0.0, max_value=100.0, step=0.01, label='Profile Soil Wetness (%)') / 100
-    #         X['GWETROOT'] = st.slider(min_value=0.0, max_value=100.0, step=0.01, label='Root Zone Soil Wetness (%)') / 100
-    #         X['GWETTOP'] = st.slider(min_value=0.0, max_value=100.0, step=0.01, label='Surface Soil Wetness (%)') / 100
-        
-    #     st.form_submit_button(label='Predict', type='primary', use_container_width=True)
 
     # Output
     out_col1, out_col2 = st.columns([1, 2])
@@ -113,11 +86,15 @@ with single_point_tab:
         models_dict[model_name]['pred'] = models_dict[model_name]['model'].predict(X_scaled)[0]
 
     @st.dialog(title='Model Summary', width='large')
-    def show_model_summary(model):
+    def show_model_summary(model, name):
+
+        st.write(name)
         st.bar_chart( 
             pd.DataFrame(model.feature_importances_, index=WEATHER_FEATURES.keys()).reset_index(), 
-            x='index', color='index', x_label='Weight', y_label='Feature', 
+            x='index', color='index', x_label='Weight / Importance', y_label='Feature', 
             height=500, horizontal=True)
+
+        st.info('No idea what **Feature Importance** is? [Check out the link here!](https://www.baeldung.com/cs/ml-feature-importance#3-what-is-feature-importance-in-machine-learning)', icon=':material/help:')
 
     # Display the results as metrics
     with out_col1:
@@ -125,15 +102,18 @@ with single_point_tab:
         average_yield = crop_data['Value'].mean()
 
         for model_name in models_dict.keys():
+
             pct_chg = (models_dict[model_name]['pred'] - average_yield) / average_yield * 100
+
             st.metric(label=f'{model_name} Prediction Yield', value=f'{models_dict[model_name]['pred']:.2f}', delta=f'{pct_chg:.2f}% from average', border=True)
+
             if st.button(f'View {model_name} Model Summary', icon=':material/bar_chart:', use_container_width=True): 
-                show_model_summary(models_dict[model_name]['model'])
+                show_model_summary(models_dict[model_name]['model'], model_name)
 
     with out_col2:
 
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=crop_data['Year'], y=crop_data['Value'], name='Historical Yield'))
+        fig.add_trace(go.Scatter(x=crop_data['Year'], y=crop_data['Value'], name='Historical Yield', line_shape='spline'))
 
         for model_name in models_dict.keys():
             fig.add_trace(go.Scatter(
@@ -162,6 +142,7 @@ with single_point_tab:
 with multi_point_tab:
 
     arima_pred = pd.read_csv('data/arima_pred.csv')
+    arima_pred = arima_pred[arima_pred['YEAR'] > 2022]
     arima_pred['T2M_MAX'] = arima_pred['T2M_MIN'] + arima_pred['T2M_RANGE']
     arima_pred['rain_days'] = arima_pred['rain_days'].apply(int)
 
@@ -173,7 +154,12 @@ with multi_point_tab:
         for col in ['Profile Soil Moisture (%)', 'Root Zone Soil Wetness (%)', 'Surface Soil Wetness (%)']:
             arima_pred_viz[col] *= 100
 
-        st.dataframe(arima_pred_viz.set_index('Year').T, use_container_width=True)
+        arima_pred_viz = arima_pred_viz.set_index('Year').T
+        arima_pred_viz['Trends'] = arima_pred_viz.apply(lambda row: row.tolist(), axis=1)
+
+        st.dataframe(arima_pred_viz, 
+                     column_config={ 'Trends': st.column_config.AreaChartColumn('Trend Line') },
+                     use_container_width=True)
 
     arima_X = arima_pred.drop(columns='YEAR')
     arima_X_scaled = scaler.transform(arima_X)
@@ -183,7 +169,7 @@ with multi_point_tab:
         models_dict[model_name]['series_pred'] = models_dict[model_name]['model'].predict(arima_X_scaled)
 
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=crop_data['Year'], y=crop_data['Value'], name='Historical Yield'))
+    fig.add_trace(go.Scatter(x=crop_data['Year'], y=crop_data['Value'], name='Historical Yield', line_shape='spline'))
 
     for model_name in models_dict.keys():
         fig.add_trace(go.Scatter(
@@ -191,6 +177,7 @@ with multi_point_tab:
             y=models_dict[model_name]['series_pred'],
             mode='lines', 
             name=f'{model_name} Forecasted Yield',
+            line_shape='spline'
         ))
 
     # Add title and labels
@@ -202,21 +189,3 @@ with multi_point_tab:
     )
 
     st.plotly_chart(fig)
-
-    st.markdown('## Recommendations / Suggestions')
-    st.write('loremipsum idk what to do here')
-
-# for m in models_dict.keys():
-
-#     f, ax = plt.subplots()
-#     sns.barplot(
-#         data=pd.DataFrame(models_dict[m]['model'].feature_importances_, index=WEATHER_FEATURES.keys()).reset_index().sort_values(by=0, ascending=False).head(5), 
-#         x=0,
-#         y='index',
-#         orient='h',
-#         ax=ax
-#     )
-#     ax.set_title(f'{m} Feature Importance (Top 5)')
-#     ax.set_xlabel('Weight')
-#     ax.set_ylabel('Feature')
-#     st.pyplot(f)
