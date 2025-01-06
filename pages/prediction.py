@@ -101,28 +101,45 @@ with single_point_tab:
 
         average_yield = crop_data['Value'].mean()
 
-        for model_name in models_dict.keys():
+        pred_average = sum([models_dict[name]['pred'] for name in models_dict.keys()]) / 3
+        pct_chg_avg = (pred_average - average_yield) / average_yield * 100
 
-            pct_chg = (models_dict[model_name]['pred'] - average_yield) / average_yield * 100
+        st.metric(label='Averaged Prediction Yield', value=f'{pred_average:.2f}', delta=f'{pct_chg_avg:.2f}% from historical average', border=True)
 
-            st.metric(label=f'{model_name} Prediction Yield', value=f'{models_dict[model_name]['pred']:.2f}', delta=f'{pct_chg:.2f}% from average', border=True)
+        show_individual_models_pred = st.toggle('View Individual Model Predictions')
 
-            if st.button(f'View {model_name} Model Summary', icon=':material/bar_chart:', use_container_width=True): 
-                show_model_summary(models_dict[model_name]['model'], model_name)
+        if show_individual_models_pred:
+
+            for model_name in models_dict.keys():
+
+                pct_chg = (models_dict[model_name]['pred'] - average_yield) / average_yield * 100
+
+                st.metric(label=f'{model_name} Prediction Yield', value=f'{models_dict[model_name]['pred']:.2f}', delta=f'{pct_chg:.2f}% from historical average', border=True)
+
+                if st.button(f'View {model_name} Model Summary', icon=':material/bar_chart:', use_container_width=True): 
+                    show_model_summary(models_dict[model_name]['model'], model_name)
 
     with out_col2:
 
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=crop_data['Year'], y=crop_data['Value'], name='Historical Yield', line_shape='spline'))
+        fig.add_trace(go.Scatter(
+            x=crop_data['Year'], 
+            y=[pred_average] * len(crop_data['Year']),
+            mode='lines', 
+            name='Average Predicted Yield',
+            line=dict(dash='dash')
+        ))
 
-        for model_name in models_dict.keys():
-            fig.add_trace(go.Scatter(
-                x=crop_data['Year'], 
-                y=[models_dict[model_name]['pred']] * len(crop_data['Year']),
-                mode='lines', 
-                name=f'{model_name} Predicted Yield', 
-                line=dict(dash='dash')
-            ))
+        if show_individual_models_pred:
+            for model_name in models_dict.keys():
+                fig.add_trace(go.Scatter(
+                    x=crop_data['Year'], 
+                    y=[models_dict[model_name]['pred']] * len(crop_data['Year']),
+                    mode='lines', 
+                    name=f'{model_name} Predicted Yield', 
+                    line=dict(dash='dash')
+                ))
 
         # Add title and labels
         fig.update_layout(
@@ -173,8 +190,8 @@ with multi_point_tab:
 
     for model_name in models_dict.keys():
         fig.add_trace(go.Scatter(
-            x=arima_pred['YEAR'], 
-            y=models_dict[model_name]['series_pred'],
+            x=[2022] + list(arima_pred['YEAR']), 
+            y=[crop_data[crop_data['Year'] == 2022]['Value'].values[0]] + list(models_dict[model_name]['series_pred']),
             mode='lines', 
             name=f'{model_name} Forecasted Yield',
             line_shape='spline'
