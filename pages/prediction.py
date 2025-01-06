@@ -11,24 +11,24 @@ st.divider()
 # Load models
 models_dict = {
     'AdaBoost Regressor': {
-        'model': joblib.load('models/ab_tune_sg.pkl'),
+        'model': joblib.load('models/ab_tune.pkl'),
         'pred': [],
         'series_pred': [],
     },
     'Random Forest Regressor': {
-        'model': joblib.load('models/rf_tune_sg.pkl'),
+        'model': joblib.load('models/rf_tune.pkl'),
         'pred': [],
         'series_pred': [],
     },
     'XGBoost Regressor': {
-        'model': joblib.load('models/xgb_tune_sg.pkl'),
+        'model': joblib.load('models/xgb_tune.pkl'),
         'pred': [],
         'series_pred': [],
     },
 }
 
 # Load scaler
-scaler = joblib.load('models/scaler_sg.pkl')
+scaler = joblib.load('models/scaler.pkl')
 
 # Load data
 crop_data = pd.read_csv('data/crop_data_nasa.csv')
