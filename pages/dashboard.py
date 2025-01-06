@@ -9,6 +9,12 @@ import plotly.graph_objects as go
 st.title(':material/monitoring: Data Visualization')
 st.divider()
 
+# w = pd.read_csv('data/nasa_data_year.csv')
+# s = pd.read_csv('data/sg_rain_data.csv')
+# w = w.merge(s, left_on='YEAR', right_on='year').set_index('year').drop(columns=['YEAR', 'PREC_DAYS'])
+# for col in ['GWETPROF', 'GWETROOT', 'GWETTOP']: w[col] *= 100
+# st.dataframe(w, column_config={'year': st.column_config.NumberColumn(format='%f')})
+
 # Tabs
 crop_weather_tab, crop_tab, weather_tab = st.tabs(['Crop Yield & Weather', 'Crop Yield', 'Weather'])
 
@@ -34,7 +40,7 @@ with crop_tab:
         st.caption('Data sourced from [Food and Agriculture Organization of the United Nations](https://www.fao.org/faostat/en/#data/QCL).')
 
     with crop_col2:
-        st.plotly_chart(px.line(crop_data_viz, x='Year', y=selected_crop_feature, title=f'{selected_crop_feature} Across Year', height=500))
+        st.plotly_chart(px.line(crop_data_viz, x='Year', y=selected_crop_feature, title=f'{selected_crop} {selected_crop_feature} Across Year', height=500))
 
 # Weather data
 with weather_tab: 
@@ -62,6 +68,14 @@ with weather_tab:
 
     with weather_col2:
         st.plotly_chart(px.line(weather_data, x='YEAR', y=WEATHER_FEATURES[selected_weather_feature], title=f'{selected_weather_feature} Across Year', height=500))
+        # temp = weather_data[['YEAR', 'GWETPROF', 'GWETROOT', 'GWETTOP']]
+        # temp = pd.melt(temp, id_vars=['YEAR'], var_name='feature', value_name='value')
+        # st.dataframe(temp)
+        # # st.plotly_chart(px.line(temp, x='YEAR', y='value', color='feature', title='Soil Data across Year', height=500))
+        # temp2 = weather_data[['YEAR', 'T2M_MIN', 'T2M_MAX']]
+        # temp2 = pd.melt(temp2, id_vars=['YEAR'], var_name='feature', value_name='value')
+        # st.dataframe(temp2)
+        # st.plotly_chart(px.line(temp2, x='YEAR', y='value', color='feature', title='Average Temperature across Year', height=800))
 
 # Crop yield and weather data
 with crop_weather_tab:

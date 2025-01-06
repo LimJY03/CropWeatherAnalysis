@@ -4,6 +4,8 @@ import random
 import plotly.graph_objects as go
 import joblib
 from assets.constants import WEATHER_FEATURES
+# import matplotlib.pyplot as plt
+# import seaborn as sns
 
 st.title(':material/psychology: Prediction')
 st.divider()
@@ -63,7 +65,7 @@ with single_point_tab:
             X['T2M_MIN'], X['T2M_MAX'] = st.slider(min_value=10.0, max_value=50.0, step=0.01, value=(min_value, max_value), label='Temperature (C)')
             X['T2M_RANGE'] = X['T2M_MAX'] - X['T2M_MIN']
         with inp_col_2:
-            st.markdown('**Wind Data**')
+            st.markdown('**Atmosphere Data**')
             X['CLOUD_AMT'] = st.slider(min_value=25.0, max_value=100.0, step=0.01, value=X['CLOUD_AMT'], label='Cloud Amount (%)')
             X['WS10M'] = st.slider(min_value=0.0, max_value=10.0, step=0.01, value=X['WS10M'], label='Wind Speed at 10 Meters (m/s)')
         with inp_col_3:
@@ -203,3 +205,18 @@ with multi_point_tab:
 
     st.markdown('## Recommendations / Suggestions')
     st.write('loremipsum idk what to do here')
+
+# for m in models_dict.keys():
+
+#     f, ax = plt.subplots()
+#     sns.barplot(
+#         data=pd.DataFrame(models_dict[m]['model'].feature_importances_, index=WEATHER_FEATURES.keys()).reset_index().sort_values(by=0, ascending=False).head(5), 
+#         x=0,
+#         y='index',
+#         orient='h',
+#         ax=ax
+#     )
+#     ax.set_title(f'{m} Feature Importance (Top 5)')
+#     ax.set_xlabel('Weight')
+#     ax.set_ylabel('Feature')
+#     st.pyplot(f)
